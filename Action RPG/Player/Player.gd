@@ -16,6 +16,9 @@ var velocity = Vector2.ZERO
 # onready is better way to get te ref and set it equal to the path of the node
 # the ready function is therefore not needed anymore
 onready var animationPlayer = $AnimationPlayer
+# get access to animation tree 
+onready var animationTree = $AnimationTree
+onready var animationState = animationTree.get("parameters/playback")
 
 func _physics_process(delta):
 	var input_vector = Vector2.ZERO
@@ -24,13 +27,14 @@ func _physics_process(delta):
 	input_vector = input_vector.normalized()
 	
 	if input_vector != Vector2.ZERO:
-		if input_vector.x > 0:
-			animationPlayer.play("RunRight")
-		else:
-			animationPlayer.play("RunLeft")
+		# set position for idle (set to blend and equal to input_vector)
+		animationTree.set("parameters/Idle/blend_position", input_vector)
+		# set position for run
+		animationTree.set("parameters/Run/blend_position", input_vector)
+		animationState.travel("Run")
 		velocity = velocity.move_toward(input_vector * MAX_SPEED, ACCELERATION * delta)
 	else:
-		animationPlayer.play("IdleRight")
+		animationState.travel("Idle")
 		velocity = velocity.move_toward(Vector2.ZERO, FRICTION * delta)
 	
 	velocity = move_and_slide(velocity)
